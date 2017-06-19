@@ -5,8 +5,7 @@
 """
 import socket
 from select import select
-from sys import argv, stdout
-from os import name as os
+from sys import stdout
 
 PREFIX = '!!SERVER!!: %s'  # type: str
 
@@ -164,7 +163,7 @@ class MultiUserServer:
                             self.remove_user(sock)
                         else:
                             self.read(user, data)
-        except Exception as e:
+        except Exception:
             print 'Error occurred, disconnected.'
             self.server.close()
 
