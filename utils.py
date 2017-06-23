@@ -17,3 +17,18 @@ def my_address():
 
 
 PREFIX = '!!SERVER!!: %s'  # type: str
+
+
+def format_msg(type_, msg):
+    if type_ == 'sys':
+        return PREFIX % (msg,)
+    return msg
+
+
+def parse_msg(msg):
+    """
+    :param str msg: Message
+    """
+    type_ = 'sys' if msg.startswith(PREFIX % '') else 'msg'
+    msg = msg.replace(PREFIX & '', '')
+    return {'type': type_, 'msg': msg}
