@@ -6,8 +6,8 @@
 import socket
 from select import select
 from sys import stdout
-
-PREFIX = '!!SERVER!!: %s'  # type: str
+import utils
+import config
 
 
 class User:
@@ -88,13 +88,13 @@ class MultiUserServer:
     :type users: list[User]
     :type server: socket.socket
     """
-    prefix = PREFIX
+    prefix = utils.PREFIX
 
     def __init__(self, port, listen):
         self.server = _server = socket.socket()  # type: socket.socket
         _server.bind(('', port))
         _server.listen(listen)
-        print 'Listening on %s:%i to %i connections' % (my_address(), port, listen)
+        print 'Listening on %s:%i to %i connections' % (utils.my_address(), port, listen)
         self.users = []
 
     def add_user(self, *args):
@@ -191,26 +191,11 @@ class MultiUserServer:
             u.send(data if not callable(data) else data(u))
 
 
-def my_address():
-    """
-    :rtype: str
-    :return: your local IP address
-    """
-    _sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    _sock.connect(('8.8.8.8', 0))
-    ip = _sock.getsockname()[0]
-    _sock.close()
-    return ip
-
-
-PORT = 8001
-
-
 def main():
     """
     server demo
     """
-    _server = MultiUserServer(PORT, 2)
+    _server = MultiUserServer(config.PORT, 2)
     _server.main()
 
 

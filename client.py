@@ -7,7 +7,8 @@ import socket
 from select import select
 from sys import stdout, stdin
 from os import name as os
-from server import PORT, PREFIX, my_address
+import utils
+import config
 if os == 'nt':
     import msvcrt
 else:
@@ -140,7 +141,7 @@ class AsyncClient(object):
         # split to messages
         _data = _data.split('\n')
         # separate control messages from data messages
-        control = [s for s in _data if s.startswith(PREFIX % '')]
+        control = [s for s in _data if s.startswith(utils.PREFIX % '')]
         _data = [s.strip() for s in _data if s not in control and s.strip()]
         # overwrite line
         stdout.write('\r')
@@ -190,7 +191,7 @@ def main():
     """
     client demo
     """
-    _client = AsyncClient(my_address(), PORT)
+    _client = AsyncClient(utils.my_address(), config.PORT)
     _client.main()
 
 
