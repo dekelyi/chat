@@ -28,6 +28,7 @@ class Reader(object):
     def __init__(self):
         self.data = ''
         self.last = ''
+        self.old_settings = None
 
     def __enter__(self):
         if os != 'nt':
@@ -47,7 +48,7 @@ class Reader(object):
         """
         if os == 'nt':
             return msvcrt.kbhit()
-        return bool(select([stdin], [], [], 0)[0])
+        return bool(select((stdin,), (), (), 0)[0])
 
     @staticmethod
     def get():
@@ -160,7 +161,7 @@ class AsyncClient(object):
                     r.get_data()
                     if r.data[-1] == '\n' if r.data else False:
                         # send message
-                        if select([], [self._socket], [], 0)[1]:
+                        if select((), (self._socket,), (), 0)[1]:
                             self._socket.send(utils.format_msg('msg', r.data[:-1]))
                         stdout.write('\r')
                         stdout.flush()
@@ -169,7 +170,7 @@ class AsyncClient(object):
                     # else:
                     #     stdout.write('\r')
                     #     stdout.flush()
-                    if select([self._socket], [], [], 0)[0]:
+                    if select((self._socket,), (), (), 0)[0]:
                         _data = self._socket.recv(1024)  # type: str
                         _data = self.on_data(_data)
                         # rewrite input

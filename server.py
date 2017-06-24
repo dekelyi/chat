@@ -51,10 +51,7 @@ class User:
         :type lst: list[User]
         :rtype: User
         """
-        try:
-            return [u for u in lst if u.address == address][0]
-        except IndexError:
-            return None
+        return next((u for u in lst if u.address == address), None)
 
     @staticmethod
     def get_by_socket(_socket, lst):
@@ -63,10 +60,7 @@ class User:
         :type lst: list[User]
         :rtype: User
         """
-        try:
-            return [u for u in lst if u.client is _socket][0]
-        except IndexError:
-            return None
+        return next((u for u in lst if u.client is _socket), None)
 
     @staticmethod
     def get(user, lst):
@@ -118,15 +112,15 @@ class MultiUserServer:
         .. to be overridden
         :param user: a User object, or some sort of ID to User.get() method
         :type user: User | Any
+        :raise Exception: user doesnt exist
         """
-        try:
-            if type(user) != User:
-                user = User.get(user, self.users)
-            user.client.close()
-            self.users.remove(user)
-            print '%s disconnected' % user
-        except (IndexError, ValueError):
-            print '!! Error !!'
+        if not isinstance(user, User):
+            user = User.get(user, self.users)
+            if not user:
+                raise Exception('user doesnt exist')
+        user.client.close()
+        self.users.remove(user)
+        print '%s disconnected' % user
 
     def read(self, user, data):
         """
@@ -163,8 +157,7 @@ class MultiUserServer:
                         else:
                             self.read(user, data)
         except Exception:
-            print 'Error occurred, disconnected.'
-            self.server.close()
+            raise
 
     def broadcast(self, exclude, type_, *args, **kwargs):
         """
