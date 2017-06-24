@@ -26,12 +26,12 @@ class User:
         self.address = address
         self.client = _socket
 
-    def send(self, data, *args):
+    def send(self, type_, *args, **kwargs):
         """
         :param str data: base string (to format)
         :param Any args: args to format
         """
-        self.client.send((data + '\n') % args)
+        self.client.send(utils.format_msg(type_, *args, **kwargs))
 
     def __str__(self):
         return '%s:%i' % (self.address[0], self.address[1])
@@ -88,7 +88,6 @@ class MultiUserServer:
     :type users: list[User]
     :type server: socket.socket
     """
-    prefix = utils.PREFIX
 
     def __init__(self, port, listen):
         self.server = _server = socket.socket()  # type: socket.socket
@@ -139,8 +138,8 @@ class MultiUserServer:
         """
         print '-',
         stdout.flush()
-        user.send(self.prefix, 'data received')
-        self.broadcast(data, user)
+        user.send('sys', 'data received')
+        self.broadcast(user, 'msg', data,)
 
     def main(self):
         """
@@ -167,28 +166,30 @@ class MultiUserServer:
             print 'Error occurred, disconnected.'
             self.server.close()
 
-    def broadcast(self, data, exclude=()):
+    def broadcast(self, exclude, type_, *args, **kwargs):
         """
         broadcast a message to all user, except {exclude}
-        :param data: string to send, or [function(User user) -> str] to send her return.
-        :type data: str | (User) -> str
         :param exclude: list[User] | User
+        :type type_: str
+        :type args: list[object]
+        :type kwargs: dict[str, object]
         """
         if not hasattr(exclude, '__iter__'):
-            exclude = [exclude]
-        users = [u for u in self.users if u not in exclude]
-        MultiUserServer.send_to(users, data)
+            exclude = exclude,
+        users = (u for u in self.users if u not in exclude)
+        MultiUserServer.send_to(users, type_, *args, **kwargs)
 
     @staticmethod
-    def send_to(users, data):
+    def send_to(users, type_, *args, **kwargs):
         """
         send a message to {users}
         :type users: list[User]
-        :param data: string to send, or [function(User user) -> str] to send her return.
-        :type data: str | (User) -> str
+        :type type_: str
+        :type args: list[object]
+        :type kwargs: dict[str, object]
         """
         for u in users:
-            u.send(data if not callable(data) else data(u))
+            u.send(type_, *args, **kwargs)
 
 
 def main():

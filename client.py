@@ -139,16 +139,15 @@ class AsyncClient(object):
         :raise: Exception to signal EXIT
         """
         # split to messages
-        _data = _data.split('\n')
+        _data = (utils.parse_msg(d) for d in _data.split('\n'))
         # separate control messages from data messages
-        control = [s for s in _data if s.startswith(utils.PREFIX % '')]
-        _data = [s.strip() for s in _data if s not in control and s.strip()]
+        msgs = (d for d in _data if d['type'] == 'msg')
         # overwrite line
         stdout.write('\r')
         stdout.flush()
         # print messages
-        for msg in _data:
-            print 'HIM:', msg
+        for msg in msgs:
+            print 'HIM:', msg['msg']
         return bool(_data)
 
     def main(self):
@@ -162,7 +161,7 @@ class AsyncClient(object):
                     if r.data[-1] == '\n' if r.data else False:
                         # send message
                         if select([], [self._socket], [], 0)[1]:
-                            self._socket.send(r.data[:-1])
+                            self._socket.send(utils.format_msg('msg', r.data[:-1]))
                         stdout.write('\r')
                         stdout.flush()
                         print 'YOU:', r.data,

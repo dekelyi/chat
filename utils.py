@@ -25,10 +25,10 @@ def format_msg(type_, msg):
     return msg
 
 
-def parse_msg(msg):
+def parse_msg(data):
     """
     :param str msg: Message
     """
-    type_ = 'sys' if msg.startswith(PREFIX % '') else 'msg'
-    msg = msg.replace(PREFIX & '', '')
+    type_ = 'sys' if data.startswith(PREFIX % '') else 'msg'
+    msg = data.replace(PREFIX % '', '')
     return {'type': type_, 'msg': msg}
