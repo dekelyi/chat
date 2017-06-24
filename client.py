@@ -139,7 +139,7 @@ class AsyncClient(object):
         :raise: Exception to signal EXIT
         """
         # split to messages
-        _data = (utils.parse_msg(d) for d in _data.split('\n'))
+        _data = (utils.parse_msg(d) for d in _data.split('\n') if d)
         # separate control messages from data messages
         msgs = (d for d in _data if d['type'] == 'msg')
         # overwrite line
@@ -178,12 +178,6 @@ class AsyncClient(object):
                             stdout.flush()
         except socket.error:
             print 'Error occurred, disconnected.'
-            raise Exception
-        except Exception as e:
-            # self.on_data(..) will raise an Exception to signal EXIT
-            if e.message:
-                print e.message
-            self._socket.close()
 
 
 def main():

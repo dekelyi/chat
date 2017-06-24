@@ -20,6 +20,10 @@ PREFIX = '!!SERVER!!: %s'  # type: str
 
 
 def format_msg(type_, msg):
+    """
+    :type type_: str
+    :type msg: str
+    """
     if type_ == 'sys':
         return PREFIX % (msg,)
     return msg
@@ -27,8 +31,10 @@ def format_msg(type_, msg):
 
 def parse_msg(data):
     """
-    :param str msg: Message
+    :param str data: Message
     """
     type_ = 'sys' if data.startswith(PREFIX % '') else 'msg'
     msg = data.replace(PREFIX % '', '')
+    if type_ == 'msg' and not msg.strip():
+        return {}
     return {'type': type_, 'msg': msg}
