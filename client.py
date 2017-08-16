@@ -190,7 +190,7 @@ def main():
     """
     client demo
     """
-    _client = AsyncClient(utils.my_address(), config.PORT)
+    _client = AsyncClient(config.ADDRESS, config.PORT)
     _client.main()
 
 
