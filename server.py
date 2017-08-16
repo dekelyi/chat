@@ -133,8 +133,12 @@ class MultiUserServer(object):
         :param str data: data.
         """
         stdout.flush()
+        data['user'] = str(user)
         user.send('ack')
-        self.broadcast(user, data)
+        if data['type'] == 'msg':
+            self.broadcast(user, data)
+        else:
+            user.send('invalid_type')
 
     def main(self):
         """

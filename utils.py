@@ -28,8 +28,8 @@ def format_msg(type_, *args, **kwargs):
     }
     dct.update(kwargs)
     if isinstance(type_, collections.Mapping):
-        # the type_ is the whole message
-        dct = type_
+        # the {type_} is the whole message
+        dct.update(type_)
     return json.dumps(dct)
 
 
