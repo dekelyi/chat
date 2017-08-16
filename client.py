@@ -7,13 +7,14 @@ import socket
 from select import select
 from sys import stdout, stdin
 from os import name as os
-import utils
-import config
 if os == 'nt':
     import msvcrt
 else:
     import termios
     import tty
+
+import utils
+import config
 
 
 class Reader(object):
@@ -162,7 +163,7 @@ class AsyncClient(object):
                     if r.data[-1] == '\n' if r.data else False:
                         # send message
                         if select((), (self._socket,), (), 0)[1]:
-                            self._socket.send(utils.format_msg('msg', r.data[:-1]))
+                            self._socket.send(utils.format_msg('msg', msg=r.data[:-1]))
                         stdout.write('\r')
                         stdout.flush()
                         print 'YOU:', r.data,
@@ -178,7 +179,10 @@ class AsyncClient(object):
                             stdout.write(r.data)
                             stdout.flush()
         except socket.error:
+            self._socket.close()
             print 'Error occurred, disconnected.'
+        except KeyboardInterrupt:
+            self._socket.close()
 
 
 def main():

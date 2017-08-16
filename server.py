@@ -10,7 +10,7 @@ import utils
 import config
 
 
-class User:
+class User(object):
     """
     used by MultiUserServer to represent a single user
     .. to be inherited
@@ -31,7 +31,8 @@ class User:
         :param str data: base string (to format)
         :param Any args: args to format
         """
-        self.client.send(utils.format_msg(type_, *args, **kwargs))
+        msg = utils.format_msg(type_, *args, **kwargs)
+        self.client.send(msg)
 
     def __str__(self):
         return '%s:%i' % (self.address[0], self.address[1])
@@ -75,7 +76,7 @@ class User:
             return User.get_by_address(user, lst)
 
 
-class MultiUserServer:
+class MultiUserServer(object):
     """
     a chat-like server that support multiple user, in a non-blocking async way
     .. to be inherited
@@ -130,10 +131,9 @@ class MultiUserServer:
         :param User user: user.
         :param str data: data.
         """
-        print '-',
         stdout.flush()
-        user.send('sys', 'data received')
-        self.broadcast(user, 'msg', data,)
+        user.send('ack')
+        self.broadcast(user, data)
 
     def main(self):
         """
@@ -155,8 +155,11 @@ class MultiUserServer:
                         if data == '':
                             self.remove_user(sock)
                         else:
-                            self.read(user, data)
+                            self.read(user, utils.parse_msg(data))
+        except KeyboardInterrupt:
+            self.server.close()
         except Exception:
+            self.server.close()
             raise
 
     def broadcast(self, exclude, type_, *args, **kwargs):

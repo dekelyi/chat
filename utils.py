@@ -2,6 +2,8 @@
 a utils library to both client and server
 """
 import socket
+import json
+import collections
 
 
 def my_address():
@@ -16,25 +18,23 @@ def my_address():
     return ip
 
 
-PREFIX = '!!SERVER!!: %s'  # type: str
-
-
-def format_msg(type_, msg):
+def format_msg(type_, *args, **kwargs):
     """
     :type type_: str
-    :type msg: str
     """
-    if type_ == 'sys':
-        return PREFIX % (msg,)
-    return msg
+    dct = {
+        'type': type_,
+        'args': args,
+    }
+    dct.update(kwargs)
+    if isinstance(type_, collections.Mapping):
+        # the type_ is the whole message
+        dct = type_
+    return json.dumps(dct)
 
 
 def parse_msg(data):
     """
     :param str data: Message
     """
-    type_ = 'sys' if data.startswith(PREFIX % '') else 'msg'
-    msg = data.replace(PREFIX % '', '')
-    if type_ == 'msg' and not msg.strip():
-        return {}
-    return {'type': type_, 'msg': msg}
+    return json.loads(data)
