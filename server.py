@@ -1,11 +1,12 @@
 #!/usr/bin/env python2
 # coding=utf-8
 """
-
+Server application
 """
 import socket
 from select import select
 from sys import stdout
+import collections
 import utils
 import config
 
@@ -70,9 +71,9 @@ class User(object):
         :type lst: list[User]
         :rtype: User
         """
-        if type(user) == socket.socket:
+        if isinstance(user, socket.socket):
             return User.get_by_socket(user, lst)
-        elif type(user) == tuple:
+        elif isinstance(user, collections.Sequence):
             return User.get_by_address(user, lst)
 
 
@@ -99,7 +100,7 @@ class MultiUserServer(object):
         :param args: a User object, or the parameters to a User object
         :type args: User | list
         """
-        if type(args[0]) == User:
+        if isinstance(args[0], User):
             user = args[0]
         else:
             user = User(*args)
@@ -142,8 +143,8 @@ class MultiUserServer(object):
         try:
             while True:
                 lst = [self.server] + User.get_sockets_from_users_list(self.users)
-                r, _, _ = select(lst, lst, lst)
-                for sock in r:
+                rlist, _, _ = select(lst, lst, lst)
+                for sock in rlist:
                     if sock is self.server:
                         self.add_user(*self.server.accept())
                     else:
@@ -184,8 +185,8 @@ class MultiUserServer(object):
         :type args: list[object]
         :type kwargs: dict[str, object]
         """
-        for u in users:
-            u.send(type_, *args, **kwargs)
+        for usr in users:
+            usr.send(type_, *args, **kwargs)
 
 
 def main():

@@ -1,20 +1,21 @@
 #!/usr/bin/env python2
 # coding=utf-8
 """
-
+Client application
 """
 import socket
 from select import select
 from sys import stdout, stdin
 from os import name as os
-if os == 'nt':
-    import msvcrt
-else:
-    import termios
-    import tty
-
 import utils
 import config
+
+# platform specific implementaions
+if os == 'nt':
+    import msvcrt  # pylint: disable=import-error
+else:
+    import termios  # pylint: disable=import-error
+    import tty  # pylint: disable=import-error
 
 
 class Reader(object):
@@ -77,20 +78,20 @@ class Reader(object):
         :rtype: str
         :return: char input
         """
-        self.last = s = self.get()
-        self.data += s
-        if s:
-            if s == '\n':
+        self.last = string = self.get()
+        self.data += string
+        if string:
+            if string == '\n':
                 pass
-            elif s == '\x7f':
+            elif string == '\x7f':
                 # backspace
                 self.data = self.data[:-2] if len(self.data) > 2 else ''
                 stdout.write('\r' + self.data + ' ' + '\r' + self.data)
                 stdout.flush()
             else:
-                stdout.write(s)
+                stdout.write(string)
                 stdout.flush()
-        return s
+        return string
 
     def get_data(self):
         """
@@ -157,17 +158,17 @@ class AsyncClient(object):
         main processing of the client
         """
         try:
-            with Reader() as r:
+            with Reader() as reader:
                 while True:
-                    r.get_data()
-                    if r.data[-1] == '\n' if r.data else False:
+                    reader.get_data()
+                    if reader.data[-1] == '\n' if reader.data else False:
                         # send message
                         if select((), (self._socket,), (), 0)[1]:
-                            self._socket.send(utils.format_msg('msg', msg=r.data[:-1]))
+                            self._socket.send(utils.format_msg('msg', msg=reader.data[:-1]))
                         stdout.write('\r')
                         stdout.flush()
-                        print 'YOU:', r.data,
-                        r.data = ''
+                        print 'YOU:', reader.data,
+                        reader.data = ''
                     # else:
                     #     stdout.write('\r')
                     #     stdout.flush()
@@ -175,8 +176,8 @@ class AsyncClient(object):
                         _data = self._socket.recv(1024)  # type: str
                         _data = self.on_data(_data)
                         # rewrite input
-                        if _data and r.data:
-                            stdout.write(r.data)
+                        if _data and reader.data:
+                            stdout.write(reader.data)
                             stdout.flush()
         except socket.error:
             self._socket.close()
