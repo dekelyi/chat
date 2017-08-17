@@ -150,7 +150,7 @@ class AsyncClient(object):
         stdout.flush()
         # print messages
         for msg in msgs:
-            print 'HIM:', msg['msg']
+            print '{}: {}'.format(msg['user'], msg['msg'])
         return bool(_data)
 
     def main(self):
