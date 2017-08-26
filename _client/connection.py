@@ -3,6 +3,7 @@ import threading
 import sys
 import select
 import utils
+from .hanlder import Handler
 
 
 class Connection(threading.Thread):
@@ -12,7 +13,9 @@ class Connection(threading.Thread):
     :type _socket: _socket.socket
     :type lock: threading.Lock
     :type parent: _socket.socket
+    :type handlers: list[Handler]
     """
+    handlers = []
 
     def __init__(self, conn, lock, parent):
         """
@@ -42,7 +45,7 @@ class Connection(threading.Thread):
         """
         pass
 
-    def on_data(self, *args, **kwargs):
+    def on_data(self, type, *args, **kwargs):
         """
         hook to be called when data is recived
 
@@ -51,7 +54,12 @@ class Connection(threading.Thread):
         :rtype: bool
         :return: wheter or not the data is being used
         """
-        return True
+        kls = next((kls for kls in self.handlers if kls.type == type), None)
+        if kls is None:
+            return False
+
+        handler = kls(*args, conn=self, **kwargs)  # type: Handler
+        return handler.process()
 
     def main(self):
         """
