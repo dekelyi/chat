@@ -5,6 +5,7 @@ import socket
 from select import select
 import threading
 import errno
+import sys
 import _socket  # pylint: disable=unused-import
 
 import utils
@@ -108,4 +109,6 @@ class MainConnection(object):
                     conn = next((conn[0] for conn in self.connections if conn[1] is sock), self._socket)
                     self.on_data(conn, data)
         except (KeyboardInterrupt, SystemExit):
-            raise SystemExit
+            for thread, _ in self.connections:  # type: Connection, object
+                thread.kill()
+            sys.exit(1)

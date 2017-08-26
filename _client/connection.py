@@ -4,9 +4,10 @@ import sys
 import select
 import utils
 from .hanlder import Handler
+from .killable import KillableThread
 
 
-class Connection(threading.Thread):
+class Connection(KillableThread):
     """
     async connection to the chat server
 
