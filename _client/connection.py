@@ -17,25 +17,17 @@ class Connection(threading.Thread):
     """
     handlers = []
 
-    def __init__(self, conn, lock, parent):
+    def __init__(self, lock, conn):
         """
         :param _socket.socket | tuple conn: connection details
         :type lock: threading.Lock
-        :param _socket.socket parent: socket to the parent connection process
+        :param _socket.socket conn: socket to the conn connection process
         :raises TypeError: type don't match
         """
         super(Connection, self).__init__()
 
         self.lock = lock
-        self.parent = parent
-
-        if isinstance(conn, tuple):
-            self._socket = socket.socket()
-            self._socket.connect(conn)
-        elif isinstance(conn, socket.socket):
-            self._socket = conn
-        else:
-            raise TypeError("expected Tuple of Socket, found {}".format(type(conn)))
+        self.conn = conn
 
         self.on_init()
 
@@ -65,7 +57,7 @@ class Connection(threading.Thread):
         """
         hook to be called as main loop program
         """
-        lst = (self._socket, self.parent)
+        lst = (self.conn,)
         while True:
             with self.lock:
                 rlist, _, _ = select.select(lst, [], [], 0)
@@ -80,7 +72,7 @@ class Connection(threading.Thread):
                 res = self.on_data(*args, **data)
                 if res is False:
                     with self.lock:
-                        self.parent.sendall(_data)
+                        self.conn.sendall(_data)
 
     def run(self):
         """
@@ -95,9 +87,7 @@ class Connection(threading.Thread):
                 assert 0
                 print "exitt"
             finally:
-                self._socket.shutdown(socket.SHUT_RDWR)
-                self._socket.close()
-                self.parent.send('EXIT')
+                self.conn.send('EXIT')
         except socket.error as err:
             if err.errno != socket.errno.EBADF:
                 raise

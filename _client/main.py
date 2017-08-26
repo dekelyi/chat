@@ -77,8 +77,8 @@ class MainConnection(object):
         :param type kls: subclass of Connection
         """
         server, client = _mock_socketpair(self.conn_server)
-        conn = kls(self._socket, self.lock, client)
-        self.connections.append((conn, server, client))
+        conn = kls(self.lock, client)
+        self.connections.append((conn, server))
         conn.start()
 
     def on_data(self, conn, data):
@@ -90,22 +90,22 @@ class MainConnection(object):
         """
         if data == 'EXIT':
             raise SystemExit
-        for details in self.connections:
-            if details[0] is not conn:
-                details[1].send(data)
+        for connection in self.connections:
+            if connection[0] is not conn:
+                connection[1].send(data)
 
     def main(self):
         """
         main program loop
         """
         try:
-            lst = (conn[1] for conn in self.connections)
+            lst = [conn[1] for conn in self.connections] + [self._socket]
             while True:
                 with self.lock:
                     rlist, _, _ = select(lst, [], [], 0)
-                if rlist:
-                    for sock in rlist:
-                        conn = next(conn[0] for conn in self.connections if conn[1] is sock)
-                        self.on_data(conn, sock.recv(1024))
+                    rlist = [(sock, sock.recv(1024)) for sock in rlist]
+                for sock, data in rlist:
+                    conn = next((conn[0] for conn in self.connections if conn[1] is sock), self._socket)
+                    self.on_data(conn, data)
         except (KeyboardInterrupt, SystemExit):
             raise SystemExit
