@@ -67,11 +67,19 @@ def position(x=0, y=0):
 
 
 class PositionController(object):
+    """
+    Utillity to help changing position of cursor
+    """
     def __init__(self, x=0, y=0):
         self.x = x
         self.y = y
 
     def __call__(self, *args):
+        """
+        Print {{args}} the same as {{print}} statement, and change the saved position
+
+        :type args: any
+        """
         text = ' '.join(args)
         print text
         self.y += 1 + (len(text) / TERMSIZE[0])
