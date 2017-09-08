@@ -78,7 +78,7 @@ class MainConnection(object):
         :param type kls: subclass of Connection
         """
         server, client = _mock_socketpair(self.conn_server)
-        conn = kls(self.lock, client)
+        conn = kls(self, client)
         self.connections.append((conn, server))
         conn.start()
 

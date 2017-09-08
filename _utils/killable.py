@@ -19,7 +19,6 @@ class KillableThread(threading.Thread):
             return
 
         exc = ctypes.py_object(excobj)
-        print exc
         res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
             ctypes.c_long(self.ident), exc)
         if res == 0:
