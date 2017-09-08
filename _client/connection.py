@@ -63,23 +63,26 @@ class Connection(KillableThread):
         """
         try:
             data = self.parent.queue.get_nowait()  # type: dict[basestring, any]
-            if data.get('_conn', None) is self:
-                return
-            args = data.get('args', ())
-            try:
-                del data['args']
-            except KeyError:
-                pass
+            data_conn = data.get('_conn', [])
 
             try:
                 del data['_conn']
             except KeyError:
                 pass
 
-            res = self.on_data(*args, **data)
-            if res is False:
+            if self not in data_conn:
+                args = data.get('args', ())
+                try:
+                    del data['args']
+                except KeyError:
+                    pass
+
+                res = self.on_data(*args, **data)
                 data['args'] = args
-                data['_conn'] = self
+                data['_conn'] = data_conn + [self]
+            else:
+                res = False
+            if res is False:
                 self.parent.queue.put(data)
             self.parent.queue.task_done()
         except Queue.Empty:
