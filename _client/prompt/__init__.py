@@ -8,9 +8,14 @@ import utils
 from _utils.reader import Reader
 from _utils.term import clearline, write, position, TERMSIZE
 
+from . import ask
+
 
 class PromptConn(Connection):
     contextmanager = Reader
+    handlers = [
+        ask.askHandler
+    ]
 
     def __init__(self, *args, **kwargs):
         super(PromptConn, self).__init__(*args, **kwargs)

@@ -100,3 +100,12 @@ class Reader(object):
         while self.has():
             self.show()
         return self.data.strip()
+
+    def read_line(self):
+        """
+        Blocking line reading from stdout
+        """
+        while True:
+            data = self.get_data()
+            if self.data.endswith('\n'):
+                return data

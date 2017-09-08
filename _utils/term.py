@@ -32,7 +32,7 @@ def clearline():
     """
     Clear current line
     """
-    write(ansi('2K'))
+    write(ansi('2K') + '\r')
 
 
 def clear():
