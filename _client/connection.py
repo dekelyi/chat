@@ -1,6 +1,7 @@
 import socket
 import _socket
 import select
+from contextlib import contextmanager
 import utils
 from _utils.hanlder import Handler
 from _utils.killable import KillableThread
@@ -60,6 +61,8 @@ class Connection(KillableThread):
     def main(self):
         """
         hook to be called as main loop program
+
+        may get {{context}} if {{self.contextmanager}} returns
         """
         lst = (self.conn,)
         with self.parent.lock:
@@ -72,10 +75,11 @@ class Connection(KillableThread):
                 del data['args']
             except KeyError:
                 pass
-            res = self.on_data(*args, **data)
-            if res is False:
-                with self.parent.lock:
-                    self.conn.sendall(_data)
+            self.on_data(*args, **data)
+    
+    @contextmanager
+    def contextmanager(self):
+        yield
 
     def run(self):
         """
@@ -83,8 +87,10 @@ class Connection(KillableThread):
         """
         try:
             try:
-                while True:
-                    self.main()
+                with self.contextmanager() as context:
+                    while True:
+                        args = () if context is None else (context,)
+                        self.main(*args)
             except socket.error as err:
                 print "ERROR:", err
             except (KeyboardInterrupt, SystemExit):
