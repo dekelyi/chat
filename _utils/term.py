@@ -72,7 +72,7 @@ class PositionController(object):
         self.y = y
 
     def __call__(self, *args):
-        text = ' '.join(args)[:-1]
+        text = ' '.join(args)
         print text
         self.y += 1
 
