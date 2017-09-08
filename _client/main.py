@@ -40,9 +40,6 @@ class MainConnection(object):
 
         self.connections = []
 
-        term.colorama.init()
-        term.clear()
-
     def add_connection(self, kls):
         """
         adds a connection handler
@@ -67,6 +64,8 @@ class MainConnection(object):
         """
         main program loop
         """
+        term.colorama.init()
+        term.clear()
         try:
             if self._exit:
                 raise KeyboardInterrupt
@@ -81,10 +80,3 @@ class MainConnection(object):
             for thread in self.connections:  # type: Connection
                 thread.kill()
             sys.exit(1)
-
-    @contextmanager
-    def change_position(self, x=0, y=0):
-        term.save()
-        term.position(x, y)
-        yield
-        term.restore()

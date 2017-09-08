@@ -1,5 +1,5 @@
 from ..connection import Connection
-from _utils.positioner import Positioner
+from _utils.term import PositionController
 
 from . import msg
 
@@ -10,4 +10,4 @@ class LogConn(Connection):
     def __init__(self, *args, **kwargs):
         super(LogConn, self).__init__(*args, **kwargs)
 
-        self.pos = Positioner()
+        self.pos = PositionController()

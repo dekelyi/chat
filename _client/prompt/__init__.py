@@ -27,14 +27,12 @@ class PromptConn(Connection):
         reader.get_data()
 
         if reader.data.endswith('\n'):
+            data = reader.data[:-1].strip()
+            if data:
+                with self.parent.lock:
+                    self.parent.socket_.send(utils.format_msg('msg', msg=data))
+                    self.parent.queue.put(utils.format_msg('msg', msg=data, user='YOU', _not_json=True))
             with self.parent.lock:
-                self.parent.socket_.send(utils.format_msg('msg', msg=reader.data[:-1]))
                 write('\r')
                 clearline()
-            self.parent.queue.put(utils.format_msg('msg', msg=reader.data[:-1], user='YOU', _not_json=True))
             reader.data = ''
-
-        # with self.parent.lock:
-        #     clearline()
-        #     write(reader.data)
-

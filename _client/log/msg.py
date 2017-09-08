@@ -2,6 +2,9 @@ from _utils.hanlder import Handler
 
 
 class MsgHandler(Handler):
+    """
+    hanlder to print messages
+    """
     type = 'msg'
 
     def __init__(self, msg, user, *args, **kwargs):

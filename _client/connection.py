@@ -90,6 +90,9 @@ class Connection(KillableThread):
     
     @contextlib.contextmanager
     def contextmanager(self):
+        """
+        Context manager to be called on the main program
+        """
         yield
 
     def run(self):

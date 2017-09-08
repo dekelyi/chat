@@ -26,4 +26,7 @@ class Handler(object):
 
     @abstractmethod
     def process(self):
+        """
+        hook to be called to handle the msg
+        """
         raise NotImplementedError
