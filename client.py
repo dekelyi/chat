@@ -120,8 +120,8 @@ class AsyncClient(object):
         :type port: int
         """
         self.addr = (address, port)
-        self._socket = socket.socket()
-        self._socket.connect(self.addr)
+        self.socket_ = socket.socket()
+        self.socket_.connect(self.addr)
         self.on_init()
 
     def on_init(self):
@@ -150,7 +150,7 @@ class AsyncClient(object):
         stdout.flush()
         # print messages
         for msg in msgs:
-            print 'HIM:', msg['msg']
+            print '{}: {}'.format(msg['user'], msg['msg'])
         return bool(_data)
 
     def main(self):
@@ -163,8 +163,8 @@ class AsyncClient(object):
                     reader.get_data()
                     if reader.data[-1] == '\n' if reader.data else False:
                         # send message
-                        if select((), (self._socket,), (), 0)[1]:
-                            self._socket.send(utils.format_msg('msg', msg=reader.data[:-1]))
+                        if select((), (self.socket_,), (), 0)[1]:
+                            self.socket_.send(utils.format_msg('msg', msg=reader.data[:-1]))
                         stdout.write('\r')
                         stdout.flush()
                         print 'YOU:', reader.data,
@@ -172,18 +172,18 @@ class AsyncClient(object):
                     # else:
                     #     stdout.write('\r')
                     #     stdout.flush()
-                    if select((self._socket,), (), (), 0)[0]:
-                        _data = self._socket.recv(1024)  # type: str
+                    if select((self.socket_,), (), (), 0)[0]:
+                        _data = self.socket_.recv(1024)  # type: str
                         _data = self.on_data(_data)
                         # rewrite input
                         if _data and reader.data:
                             stdout.write(reader.data)
                             stdout.flush()
         except socket.error:
-            self._socket.close()
+            self.socket_.close()
             print 'Error occurred, disconnected.'
         except KeyboardInterrupt:
-            self._socket.close()
+            self.socket_.close()
 
 
 def main():

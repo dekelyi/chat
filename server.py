@@ -134,8 +134,8 @@ class MultiUserServer(object):
         """
         stdout.flush()
         data['user'] = str(user)
-        user.send('ack')
         if data['type'] == 'msg':
+            user.send('ack')
             self.broadcast(user, data)
         else:
             user.send('invalid_type')

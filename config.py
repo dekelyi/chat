@@ -3,5 +3,5 @@ A config file to both server and client
 """
 import utils
 
-PORT = 8001
+PORT = 7000
 ADDRESS = utils.my_address()
