@@ -81,4 +81,5 @@ class MainConnection(object):
         except (KeyboardInterrupt, SystemExit):
             for thread in self.connections:  # type: Connection
                 thread.kill()
+            self.socket_.close()
             sys.exit(1)

@@ -4,6 +4,7 @@
 Server application
 """
 import socket
+import threading
 from select import select
 from sys import stdout
 import collections
@@ -19,13 +20,15 @@ class User(object):
     :type client: socket.socket
     """
 
-    def __init__(self, _socket, address):
+    def __init__(self, _socket, address, name=''):
         """
         :param socket.socket _socket: socket connection
         :param tuple address: (address[str], port[int])
         """
         self.address = address
         self.client = _socket
+
+        self.name = name or ('%s:%i' % self.address)
 
     def send(self, type_, *args, **kwargs):
         """
@@ -35,8 +38,21 @@ class User(object):
         msg = utils.format_msg(type_, *args, **kwargs)
         self.client.send(msg)
 
+    def ask(self, question, users):
+        """
+        :type question: str
+        :type users: list[User]
+        """
+        if users is None:
+            users = [self]
+        users.remove(self)
+        self.send('ask', question=question)
+        data = utils.parse_msg(self.client.recv(1024))['answer']
+        users.append(self)
+        return data
+
     def __str__(self):
-        return '%s:%i' % (self.address[0], self.address[1])
+        return str(self.name)
 
     @staticmethod
     def get_sockets_from_users_list(lst):
@@ -65,6 +81,15 @@ class User(object):
         return next((u for u in lst if u.client is _socket), None)
 
     @staticmethod
+    def get_by_name(name, lst):
+        """
+        :type name: basestring
+        :type lst: list[User]
+        :rtype: User
+        """
+        return next((u for u in lst if u.name == name), None)
+
+    @staticmethod
     def get(user, lst):
         """
         :type user: Any
@@ -75,6 +100,8 @@ class User(object):
             return User.get_by_socket(user, lst)
         elif isinstance(user, collections.Sequence):
             return User.get_by_address(user, lst)
+        elif isinstance(user, basestring):
+            return User.get_by_name(user, lst)
 
 
 class MultiUserServer(object):
@@ -104,6 +131,7 @@ class MultiUserServer(object):
             user = args[0]
         else:
             user = User(*args)
+        user.name = user.ask('name', None)
         print '%s connected' % user
         self.users.append(user)
 
@@ -150,7 +178,8 @@ class MultiUserServer(object):
                 rlist, _, _ = select(lst, lst, lst)
                 for sock in rlist:
                     if sock is self.server:
-                        self.add_user(*self.server.accept())
+                        # threading.Thread(target=self.add_user, args=sock.accept())
+                        self.add_user(*sock.accept())
                     else:
                         user = User.get_by_socket(sock, self.users)
                         try:
@@ -161,7 +190,7 @@ class MultiUserServer(object):
                             self.remove_user(sock)
                         else:
                             self.read(user, utils.parse_msg(data))
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, SystemExit):
             self.server.close()
         except Exception:
             self.server.close()

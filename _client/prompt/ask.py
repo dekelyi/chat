@@ -1,6 +1,7 @@
 from _utils.hanlder import Handler
 from _utils.term import clearline, write
 from _utils.reader import Reader
+from utils import format_msg
 
 
 class askHandler(Handler):
@@ -20,9 +21,9 @@ class askHandler(Handler):
             clearline()
             
             msg = {
-                'type': 'answer',
-                'question': self.question
+                'type_': 'answer',
+                'question': self.question,
                 'answer': data
             }
 
-            self.conn.parent.socket_.send(msg)
+            self.conn.parent.socket_.send(format_msg(**msg))
