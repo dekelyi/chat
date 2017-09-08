@@ -5,7 +5,7 @@ from abc import ABCMeta, abstractmethod
 # solves circular imports
 # used only for type hinting
 if __name__ == '__main__':
-    from connection import Connection  # pylint: disable=unused-import
+    from _client.connection import Connection  # pylint: disable=unused-import
 
 
 class Handler(object):

@@ -1,7 +1,8 @@
 import socket
 import _socket
 import select
-from contextlib import contextmanager
+import contextlib
+import Queue
 import utils
 from _utils.hanlder import Handler
 from _utils.killable import KillableThread
@@ -16,23 +17,19 @@ class Connection(KillableThread):
     """
     async connection to the chat server
 
-    :type _socket: _socket.socket
     :type parent: MainConnection
-    :type conn: _socket.socket
     :type handlers: list[Handler]
     """
     handlers = []
 
-    def __init__(self, parent, conn):
+    def __init__(self, parent):
         """
-        :param _socket.socket conn: connection details
         :type parent: MainConnection
-        :param _socket.socket conn: socket to the conn connection process
         """
         super(Connection, self).__init__()
+        self.name = str(self)
 
         self.parent = parent
-        self.conn = conn
 
         self.on_init()
 
@@ -64,20 +61,31 @@ class Connection(KillableThread):
 
         may get {{context}} if {{self.contextmanager}} returns
         """
-        lst = (self.conn,)
-        with self.parent.lock:
-            rlist, _, _ = select.select(lst, [], [], 0)
-            all_data = [sock.recv(1024) for sock in rlist]
-        for _data in all_data:  # type: basestring
-            data = utils.parse_msg(_data)  # type: dict[basestring, any]
+        try:
+            data = self.parent.queue.get_nowait()  # type: dict[basestring, any]
+            if data.get('_conn', None) is self:
+                return
             args = data.get('args', ())
             try:
                 del data['args']
             except KeyError:
                 pass
-            self.on_data(*args, **data)
+
+            try:
+                del data['_conn']
+            except KeyError:
+                pass
+
+            res = self.on_data(*args, **data)
+            if res is False:
+                data['args'] = args
+                data['_conn'] = self
+                self.parent.queue.put(data)
+            self.parent.queue.task_done()
+        except Queue.Empty:
+            pass
     
-    @contextmanager
+    @contextlib.contextmanager
     def contextmanager(self):
         yield
 
@@ -86,17 +94,13 @@ class Connection(KillableThread):
         main function
         """
         try:
-            try:
-                with self.contextmanager() as context:
-                    while True:
-                        args = () if context is None else (context,)
-                        self.main(*args)
-            except socket.error as err:
-                print "ERROR:", err
-            except (KeyboardInterrupt, SystemExit):
-                pass
-            finally:
-                self.conn.send('EXIT')
+            with self.contextmanager() as context:
+                while True:
+                    args = () if context is None else (context,)
+                    self.main(*args)
         except socket.error as err:
-            if err.errno != socket.errno.EBADF:
-                raise
+            print "ERROR:", err
+        except (KeyboardInterrupt, SystemExit):
+            pass
+        finally:
+            self.parent._exit = True

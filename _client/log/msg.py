@@ -10,5 +10,6 @@ class MsgHandler(Handler):
         self.user = user
 
     def process(self):
-        print self.user, 'said:', self.msg
+        with self.conn.parent.lock, self.conn.pos as pos:
+            pos(self.user, 'said:', self.msg)
     

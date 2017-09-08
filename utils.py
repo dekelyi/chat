@@ -22,6 +22,12 @@ def format_msg(type_, *args, **kwargs):
     """
     :type type_: str
     """
+    try:
+        not_json = kwargs['_not_json']
+        del kwargs['_not_json']
+    except KeyError:
+        not_json = False
+    
     dct = {
         'type': type_,
         'args': args,
@@ -30,6 +36,9 @@ def format_msg(type_, *args, **kwargs):
     if isinstance(type_, collections.Mapping):
         # the {type_} is the whole message
         dct.update(type_)
+    if not_json:
+        return dct
+
     return json.dumps(dct)
 
 
