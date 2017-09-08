@@ -1,4 +1,4 @@
-from ..hanlder import Handler
+from _utils.hanlder import Handler
 
 
 class MsgHandler(Handler):

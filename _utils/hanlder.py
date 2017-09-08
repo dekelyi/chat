@@ -2,6 +2,11 @@
 from contextlib import contextmanager
 from abc import ABCMeta, abstractmethod
 
+# solves circular imports
+# used only for type hinting
+if __name__ == '__main__':
+    from connection import Connection  # pylint: disable=unused-import
+
 
 class Handler(object):
     """
@@ -22,9 +27,3 @@ class Handler(object):
     @abstractmethod
     def process(self):
         raise NotImplementedError
-
-
-# solves circular imports
-# used only for type hinting
-if __name__ == '__main__':
-    from connection import Connection  # pylint: disable=unused-import

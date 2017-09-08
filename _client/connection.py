@@ -3,8 +3,8 @@ import threading
 import sys
 import select
 import utils
-from .hanlder import Handler
-from .killable import KillableThread
+from _utils.hanlder import Handler
+from _utils.killable import KillableThread
 
 
 class Connection(KillableThread):
