@@ -21,7 +21,7 @@ class MainConnection(object):
     :type lock: threading.Lock
     :type _socket: _socket.socket
     :type queue: Queue
-    :type _exit: bool
+    :type exit: bool
     :type connection: list[tuple[Connection, Queue]]
     """
     def __init__(self, addr):
@@ -36,7 +36,7 @@ class MainConnection(object):
 
         self.queue = Queue()
 
-        self._exit = False
+        self.exit = False
 
         self.connections = []
 
@@ -67,7 +67,7 @@ class MainConnection(object):
         term.colorama.init()
         term.clear()
         try:
-            if self._exit:
+            if self.exit:
                 raise KeyboardInterrupt
             lst = (self.socket_,)
             while True:
@@ -75,6 +75,8 @@ class MainConnection(object):
                     rlist, _, _ = select(lst, [], [], 0)
                     rlist = [(sock, sock.recv(1024)) for sock in rlist]
                 for _, data in rlist:  # type: _socket.socket, basestring
+                    if data == '':
+                        raise KeyboardInterrupt
                     self.on_data(utils.parse_msg(data))
         except (KeyboardInterrupt, SystemExit):
             for thread in self.connections:  # type: Connection

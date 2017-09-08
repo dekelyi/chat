@@ -39,16 +39,17 @@ class Connection(KillableThread):
         """
         pass
 
-    def on_data(self, type, *args, **kwargs):
+    def on_data(self, type_, *args, **kwargs):
         """
         hook to be called when data is recived
 
+        :param str type_: type of message
         :type args: list[any]
         :type kwargs: dict[basestring, any]
         :rtype: bool
         :return: wheter or not the data is being used
         """
-        kls = next((kls for kls in self.handlers if kls.type == type), None)
+        kls = next((kls for kls in self.handlers if kls.type == type_), None)
         if kls is None:
             return False
 
@@ -77,9 +78,13 @@ class Connection(KillableThread):
                 except KeyError:
                     pass
 
-                res = self.on_data(*args, **data)
+                type_ = data['type']
+                del data['type']
+
+                res = self.on_data(type_, *args, **data)
                 data['args'] = args
                 data['_conn'] = data_conn + [self]
+                data['type'] = type_
             else:
                 res = False
             if res is False:
@@ -106,7 +111,5 @@ class Connection(KillableThread):
                     self.main(*args)
         except socket.error as err:
             print "ERROR:", err
-        except (KeyboardInterrupt, SystemExit):
-            pass
         finally:
-            self.parent._exit = True
+            self.parent.exit = True

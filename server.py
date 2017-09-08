@@ -135,10 +135,10 @@ class MultiUserServer(object):
         stdout.flush()
         data['user'] = str(user)
         if data['type'] == 'msg':
-            user.send('ack')
             self.broadcast(user, data)
         else:
-            user.send('invalid_type')
+            del data['user']
+            user.send('invalid', msg=data, reason='Unkown type of command')
 
     def main(self):
         """

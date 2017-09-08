@@ -80,7 +80,7 @@ class PositionController(object):
 
         :type args: any
         """
-        text = ' '.join(args)
+        text = ' '.join(str(s) for s in args)
         print text
         self.y += 1 + (len(text) / TERMSIZE[0])
 

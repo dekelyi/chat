@@ -1,6 +1,7 @@
 from sys import stdout
 import contextlib
 import colorama
+from functools import partial
 
 from ..connection import Connection
 import utils
@@ -18,6 +19,22 @@ class PromptConn(Connection):
         pos[0] = 0
         position(*pos)
 
+    def _get_format(self, data):
+        """
+        get format function to the appropiate {{data}}
+
+        :type data: str
+        """
+        type_, args, kwargs = '', [], {}
+        if data.startswith('>>'):
+            args = data[2:].split(' ')
+            type_ = args[0]
+            del args[0]
+        else:
+            type_ = 'msg'
+            kwargs['msg'] = data
+        return partial(utils.format_msg, type_, *args, **kwargs)
+
     def main(self, reader):
         """
         :param Reader reader: console reader object
@@ -29,9 +46,10 @@ class PromptConn(Connection):
         if reader.data.endswith('\n'):
             data = reader.data[:-1].strip()
             if data:
+                format_msg = self._get_format(data)
                 with self.parent.lock:
-                    self.parent.socket_.send(utils.format_msg('msg', msg=data))
-                    self.parent.queue.put(utils.format_msg('msg', msg=data, user='YOU', _not_json=True))
+                    self.parent.socket_.send(format_msg())
+                    self.parent.queue.put(format_msg(user='YOU', _not_json=True))
             with self.parent.lock:
                 write('\r')
                 clearline()
