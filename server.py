@@ -4,7 +4,6 @@
 Server application
 """
 import socket
-import threading
 from select import select
 from sys import stdout
 import collections
@@ -134,8 +133,9 @@ class MultiUserServer(object):
         user.name = user.ask('name', None)
         print '%s connected' % user
         self.users.append(user)
+        self.broadcast((), 'joined', user=str(user))
 
-    def remove_user(self, user):
+    def remove_user(self, user, reason='left'):
         """
         removes user from the users list
         .. do additional things
@@ -151,6 +151,7 @@ class MultiUserServer(object):
         user.client.close()
         self.users.remove(user)
         print '%s disconnected' % user
+        self.broadcast((), reason, user=str(user))
 
     def read(self, user, data):
         """
@@ -191,10 +192,9 @@ class MultiUserServer(object):
                         else:
                             self.read(user, utils.parse_msg(data))
         except (KeyboardInterrupt, SystemExit):
+            pass
+        finally:
             self.server.close()
-        except Exception:
-            self.server.close()
-            raise
 
     def broadcast(self, exclude, type_, *args, **kwargs):
         """
