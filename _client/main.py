@@ -47,7 +47,6 @@ class MainConnection(object):
         """
         conn = kls(self)
         self.connections.append(conn)
-        conn.start()
 
     def on_data(self, data):
         """
@@ -66,6 +65,8 @@ class MainConnection(object):
         """
         term.colorama.init()
         term.clear()
+        for thread in self.connections:  # type: Connection
+            thread.start()
         try:
             if self.exit:
                 raise KeyboardInterrupt
@@ -81,5 +82,7 @@ class MainConnection(object):
         except (KeyboardInterrupt, SystemExit):
             for thread in self.connections:  # type: Connection
                 thread.kill()
+            term.clear()
+            term.position()
             self.socket_.close()
             sys.exit(1)

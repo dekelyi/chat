@@ -111,5 +111,7 @@ class Connection(KillableThread):
                     self.main(*args)
         except socket.error as err:
             print "ERROR:", err
+        except (KeyboardInterrupt, SystemExit):
+            pass
         finally:
             self.parent.exit = True

@@ -108,4 +108,5 @@ class Reader(object):
         while True:
             data = self.get_data()
             if self.data.endswith('\n'):
+                self.data = ''
                 return data
