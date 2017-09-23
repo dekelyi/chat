@@ -8,7 +8,7 @@ class Message(BaseMsgHandler):
 
 class InvalidCommand(BaseMsgHandler):
     type = 'invalid'
-    message = '>> the command ">> {msg[type]}{msg[args]}" is invalid: {reason}.'
+    message = '>> the command "{msg[type]}{msg[args]}" is invalid: {reason}.'
 
 
 class UserJoined(BaseMsgHandler):
@@ -23,7 +23,7 @@ class UserLeft(BaseMsgHandler):
 
 class UserLeft(BaseMsgHandler):
     type = 'kick'
-    message = '!! {user} kicked out of the chat.'
+    message = '!! {user} kicked out of the chat by {by}.'
 
 
 __all__ = [

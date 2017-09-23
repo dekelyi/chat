@@ -90,9 +90,9 @@ class User(object):
         """
         if isinstance(user, socket.socket):
             return User.get_by_socket(user, lst)
-        elif isinstance(user, collections.Sequence):
-            return User.get_by_address(user, lst)
         elif isinstance(user, basestring):
             return User.get_by_name(user, lst)
+        elif isinstance(user, collections.Sequence):
+            return User.get_by_address(user, lst)
         else:
             raise TypeError

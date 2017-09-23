@@ -6,7 +6,7 @@ Server application
 import socket
 import threading
 from select import select
-from sys import stdout
+from sys import stdout, exit as sys_exit
 import utils
 import config
 from _server.user import User
@@ -51,7 +51,7 @@ class MultiUserServer(object):
         threading.Thread(target=_ask_name, args=(user,)).start()
         self.users.append(user)
 
-    def remove_user(self, user, reason='left'):
+    def remove_user(self, user, reason='left', by=None):
         """
         removes user from the users list
         .. do additional things
@@ -64,10 +64,15 @@ class MultiUserServer(object):
             user = User.get(user, self.users)
             if not user:
                 raise Exception('user doesnt exist')
+        
+        more_kwargs = {}
+        if by:
+            more_kwargs['by'] = str(by)
+
         user.client.close()
         self.users.remove(user)
-        print '%s disconnected' % user
-        self.broadcast((), reason, user=str(user))
+        print '%s disconnected: %s by %s' % (user, reason, by)
+        self.broadcast((), reason, user=str(user), **more_kwargs)
 
     def read(self, user, data):
         """
@@ -90,6 +95,7 @@ class MultiUserServer(object):
             handler = kls(*args, user=user, conn=self, **data)
             handler.process()
         else:
+            data['type'] = type_
             user.send('invalid', msg=data, reason='Unkown type of command')
 
     def main(self):
@@ -120,7 +126,10 @@ class MultiUserServer(object):
             pass
         finally:
             print "Server shutdown..."
+            for user in self.users:  # type: User
+                self.remove_user(user, reason='shutdown', by='SYSTEM')
             self.server.close()
+            sys_exit(0)
 
     def broadcast(self, exclude, type_, *args, **kwargs):
         """

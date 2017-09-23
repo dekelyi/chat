@@ -8,6 +8,7 @@ class BaseMsgHandler(Handler):
         super(BaseMsgHandler, self).__init__(conn=conn)
         self.args = args
         self.kwargs = kwargs
+        self.kwargs['type'] = self.type
 
     def process(self):
         if callable(self.message):
