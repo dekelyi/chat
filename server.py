@@ -4,6 +4,7 @@
 Server application
 """
 import socket
+import threading
 from select import select
 from sys import stdout
 import collections
@@ -179,8 +180,7 @@ class MultiUserServer(object):
                 rlist, _, _ = select(lst, lst, lst)
                 for sock in rlist:
                     if sock is self.server:
-                        # threading.Thread(target=self.add_user, args=sock.accept())
-                        self.add_user(*sock.accept())
+                        threading.Thread(target=self.add_user, args=sock.accept()).start()
                     else:
                         user = User.get_by_socket(sock, self.users)
                         try:
@@ -194,6 +194,7 @@ class MultiUserServer(object):
         except (KeyboardInterrupt, SystemExit):
             pass
         finally:
+            print "Server shutdown..."
             self.server.close()
 
     def broadcast(self, exclude, type_, *args, **kwargs):
