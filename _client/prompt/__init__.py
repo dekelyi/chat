@@ -35,7 +35,7 @@ class PromptConn(Connection):
             args = data[2:].split(' ')
             type_ = args[0]
             del args[0]
-            if type_.lower() == 'exit':
+            if type_.lower() == 'quit':
                 raise KeyboardInterrupt
         else:
             type_ = 'msg'
