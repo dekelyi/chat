@@ -14,6 +14,7 @@ class Handler(object):
     """
     handle a message from the connection
 
+    :type conn: MultiUserServer
     :type type: basestring
     :type user_type: type | tuple[type]
     """

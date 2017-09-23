@@ -22,6 +22,7 @@ def format_msg(type_, *args, **kwargs):
     """
     :type type_: str
     """
+    # oh python3 - only keyword argumtns
     try:
         not_json = kwargs['_not_json']
         del kwargs['_not_json']
@@ -29,7 +30,7 @@ def format_msg(type_, *args, **kwargs):
         not_json = False
     
     dct = {
-        'type': type_,
+        'type': type_.lower() if isinstance(type_, basestring) else type_,
         'args': args,
     }
     dct.update(kwargs)
@@ -46,4 +47,11 @@ def parse_msg(data):
     """
     :param str data: Message
     """
-    return json.loads(data)
+    obj = json.loads(data)
+
+    try:
+        obj['type'] = obj['type'].lower()
+    except:
+        pass
+    
+    return obj

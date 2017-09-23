@@ -10,6 +10,7 @@ from sys import stdout
 import utils
 import config
 from _server.user import User
+from _server.handlers import Handler, HANDLERS
 
 
 class MultiUserServer(object):
@@ -77,11 +78,18 @@ class MultiUserServer(object):
         :param str data: data.
         """
         stdout.flush()
-        data['user'] = str(user)
-        if data['type'] == 'msg':
-            self.broadcast(user, data)
+        type_ = data['type']
+        del data['type']
+        kls = next((kls for kls in HANDLERS if kls.type == type_), None)
+        if kls:
+            try:
+                args = data['args']
+                del data['args']
+            except KeyError:
+                args = ()
+            handler = kls(*args, user=user, conn=self, **data)
+            handler.process()
         else:
-            del data['user']
             user.send('invalid', msg=data, reason='Unkown type of command')
 
     def main(self):
@@ -91,16 +99,19 @@ class MultiUserServer(object):
         try:
             while True:
                 lst = [self.server] + User.get_sockets_from_users_list(self.users)
-                rlist, _, _ = select(lst, lst, lst)
-                for sock in rlist:
+                rlist, _, xlist = select(lst, lst, lst)
+                for sock in rlist + xlist:
                     if sock is self.server:
                         self.add_user(*sock.accept())
                     else:
                         user = User.get_by_socket(sock, self.users)
-                        try:
-                            data = sock.recv(1024)
-                        except socket.error:
+                        if sock in xlist:
                             data = ''
+                        else:
+                            try:
+                                data = sock.recv(1024)
+                            except socket.error:
+                                data = ''
                         if data == '':
                             self.remove_user(sock)
                         else:
