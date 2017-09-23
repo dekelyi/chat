@@ -7,101 +7,9 @@ import socket
 import threading
 from select import select
 from sys import stdout
-import collections
 import utils
 import config
-
-
-class User(object):
-    """
-    used by MultiUserServer to represent a single user
-    .. to be inherited
-    :type address: tuple
-    :type client: socket.socket
-    """
-
-    def __init__(self, _socket, address, name=''):
-        """
-        :param socket.socket _socket: socket connection
-        :param tuple address: (address[str], port[int])
-        """
-        self.address = address
-        self.client = _socket
-
-        self.name = name or ('%s:%i' % self.address)
-
-    def send(self, type_, *args, **kwargs):
-        """
-        :param str data: base string (to format)
-        :param Any args: args to format
-        """
-        msg = utils.format_msg(type_, *args, **kwargs)
-        self.client.send(msg)
-
-    def ask(self, question, users):
-        """
-        :type question: str
-        :type users: list[User]
-        """
-        if users is None:
-            users = [self]
-        users.remove(self)
-        self.send('ask', question=question)
-        data = utils.parse_msg(self.client.recv(1024))['answer']
-        users.append(self)
-        return data
-
-    def __str__(self):
-        return str(self.name)
-
-    @staticmethod
-    def get_sockets_from_users_list(lst):
-        """
-        :type lst: list[User]
-        :type: list[socket.socket]
-        """
-        return [u.client for u in lst]
-
-    @staticmethod
-    def get_by_address(address, lst):
-        """
-        :type address: tuple
-        :type lst: list[User]
-        :rtype: User
-        """
-        return next((u for u in lst if u.address == address), None)
-
-    @staticmethod
-    def get_by_socket(_socket, lst):
-        """
-        :type _socket: socket.socket
-        :type lst: list[User]
-        :rtype: User
-        """
-        return next((u for u in lst if u.client is _socket), None)
-
-    @staticmethod
-    def get_by_name(name, lst):
-        """
-        :type name: basestring
-        :type lst: list[User]
-        :rtype: User
-        """
-        return next((u for u in lst if u.name == name), None)
-
-    @staticmethod
-    def get(user, lst):
-        """
-        :type user: Any
-        :type lst: list[User]
-        :rtype: User
-        """
-        if isinstance(user, socket.socket):
-            return User.get_by_socket(user, lst)
-        elif isinstance(user, collections.Sequence):
-            return User.get_by_address(user, lst)
-        elif isinstance(user, basestring):
-            return User.get_by_name(user, lst)
+from _server.user import User
 
 
 class MultiUserServer(object):
@@ -125,16 +33,22 @@ class MultiUserServer(object):
         .. do additional things
         .. to be overridden
         :param args: a User object, or the parameters to a User object
-        :type args: User | list
+        :type args: User | any
         """
+        def _ask_name(_user):
+            # solve blocking name-asking
+            user.name = user.ask('name', None)
+            print '%s connected' % user
+            self.broadcast((), 'joined', user=str(user))
+        
         if isinstance(args[0], User):
             user = args[0]
         else:
             user = User(*args)
-        user.name = user.ask('name', None)
-        print '%s connected' % user
+        # oh my sweet python3's async and await - i could use you so much right now.
+        # i hate threads.
+        threading.Thread(target=_ask_name, args=(user,)).start()
         self.users.append(user)
-        self.broadcast((), 'joined', user=str(user))
 
     def remove_user(self, user, reason='left'):
         """
@@ -142,7 +56,7 @@ class MultiUserServer(object):
         .. do additional things
         .. to be overridden
         :param user: a User object, or some sort of ID to User.get() method
-        :type user: User | Any
+        :type user: User | any
         :raise Exception: user doesnt exist
         """
         if not isinstance(user, User):
@@ -180,7 +94,7 @@ class MultiUserServer(object):
                 rlist, _, _ = select(lst, lst, lst)
                 for sock in rlist:
                     if sock is self.server:
-                        threading.Thread(target=self.add_user, args=sock.accept()).start()
+                        self.add_user(*sock.accept())
                     else:
                         user = User.get_by_socket(sock, self.users)
                         try:

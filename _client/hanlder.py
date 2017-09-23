@@ -1,5 +1,4 @@
 # pylint: disable=wrong-import-position,relative-import
-from contextlib import contextmanager
 from abc import ABCMeta, abstractmethod
 
 # solves circular imports

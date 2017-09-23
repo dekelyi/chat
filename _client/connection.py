@@ -4,7 +4,7 @@ import select
 import contextlib
 import Queue
 import utils
-from _utils.hanlder import Handler
+from .hanlder import Handler
 from _utils.killable import KillableThread
 
 # solves circular imports
