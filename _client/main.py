@@ -68,10 +68,10 @@ class MainConnection(object):
         for thread in self.connections:  # type: Connection
             thread.start()
         try:
-            if self.exit:
-                raise KeyboardInterrupt
             lst = (self.socket_,)
             while True:
+                if self.exit:
+                    raise KeyboardInterrupt
                 with self.lock:
                     rlist, _, _ = select(lst, [], [], 0)
                     rlist = [(sock, sock.recv(1024)) for sock in rlist]
