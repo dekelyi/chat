@@ -51,8 +51,12 @@ class MultiUserServer(object):
         def _ask_name(_user):
             # solve blocking name-asking
             _user.name = _user.ask('name', _uname_ok)
+            if len(self.users) == 1:
+                # the first user to log in shall be an admin
+                user.admin = True
+                user.send('adminized', user='YOU', by='SYSTEM')
             print '%s connected' % _user
-            self.broadcast((), 'joined', user=str(_user))
+            self.broadcast((user), 'joined', user=str(_user))
         
         if isinstance(args[0], User):
             user = args[0]
@@ -62,9 +66,6 @@ class MultiUserServer(object):
         # i hate threads.
         threading.Thread(target=_ask_name, args=(user,)).start()
         self.users.append(user)
-        if len(self.users) == 1:
-            # the first user to log in shall be an admin
-            user.admin = True
 
     def remove_user(self, user, reason='left', by=None):
         """
