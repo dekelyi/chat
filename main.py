@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 from _client.main import MainConnection
 from _client.log import LogConn
 from _client.prompt import PromptConn

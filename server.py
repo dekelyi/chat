@@ -7,10 +7,12 @@ import socket
 import threading
 from select import select
 from sys import stdout, exit as sys_exit
+import traceback
 import utils
 import config
 from _server.user import User
-from _server.handlers import Handler, HANDLERS
+from _server.handlers import HANDLERS
+from _server.hanlder import Handler, InvalidHandler
 
 
 class MultiUserServer(object):
@@ -31,16 +33,24 @@ class MultiUserServer(object):
     def add_user(self, *args):
         """
         adds a user to the users list
-        .. do additional things
-        .. to be overridden
+
         :param args: a User object, or the parameters to a User object
         :type args: User | any
         """
+        def _uname_ok(name):
+            """
+            :type name: str
+            """
+            if not name:
+                return 'cant be empty'
+            if name in (_user.name for _user in self.users):
+                return 'name taken'
+        
         def _ask_name(_user):
             # solve blocking name-asking
-            user.name = user.ask('name', None)
-            print '%s connected' % user
-            self.broadcast((), 'joined', user=str(user))
+            _user.name = _user.ask('name', _uname_ok)
+            print '%s connected' % _user
+            self.broadcast((), 'joined', user=str(_user))
         
         if isinstance(args[0], User):
             user = args[0]
@@ -82,21 +92,38 @@ class MultiUserServer(object):
         :param User user: user.
         :param str data: data.
         """
+        # set this to string value to return an invalid command
+        invalid = ''
+
         stdout.flush()
+
         type_ = data['type']
         del data['type']
+        try:
+            args = data['args']
+            del data['args']
+        except KeyError:
+            args = []
+
         kls = next((kls for kls in HANDLERS if kls.type == type_), None)
         if kls:
             try:
-                args = data['args']
-                del data['args']
-            except KeyError:
-                args = ()
-            handler = kls(*args, user=user, conn=self, **data)
-            handler.process()
+                handler = kls(*args, user=user, conn=self, **data)
+                handler.process()
+            except InvalidHandler as err:  # type: InvalidHandler
+                invalid = err.message
+            except TypeError as err:
+                if err.message.startswith('__init__() takes at least'):
+                    invalid = err.message.replace('__init__()', '')
+                else:
+                    raise
         else:
+            invalid = 'Unkown type of command'
+
+        if invalid:
+            data['args'] = args
             data['type'] = type_
-            user.send('invalid', msg=data, reason='Unkown type of command')
+            user.send('invalid', msg=data, reason=invalid)
 
     def main(self):
         """
@@ -124,6 +151,8 @@ class MultiUserServer(object):
                             self.read(user, utils.parse_msg(data))
         except (KeyboardInterrupt, SystemExit):
             pass
+        except Exception:
+            traceback.print_exc()
         finally:
             print "Server shutdown..."
             for user in self.users:  # type: User

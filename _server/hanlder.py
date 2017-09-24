@@ -10,6 +10,13 @@ if __name__ == '__main__':
     from server import MultiUserServer  # pylint: disable=unused-import
 
 
+class InvalidHandler(Exception):
+    """
+    A invalid command
+    """
+    pass
+
+
 class Handler(object):
     """
     handle a message from the connection
@@ -52,3 +59,15 @@ class ThreadHandler(Handler, threading.Thread):
     @abstractmethod
     def run(self):
         raise NotImplementedError
+
+
+class TargetHandler(Handler):
+    def __init__(self, target, *args, **kwargs):
+        super(TargetHandler, self).__init__(*args, **kwargs)
+        self.target = User.get(target, self.conn.users)  # type: User
+
+        if self.target is None:
+            raise InvalidHandler('the target user does not logged in')
+
+        if self.target == self.user:
+            raise InvalidHandler('the target cannot be the user')

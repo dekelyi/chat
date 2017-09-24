@@ -1,13 +1,8 @@
-from _server.hanlder import Handler
-from _server.user import User
+from _server.hanlder import TargetHandler
 
 
-class KickHandler(Handler):
+class KickHandler(TargetHandler):
     type = 'kick'
 
-    def __init__(self, target, *args, **kwargs):
-        super(KickHandler, self).__init__(*args, **kwargs)
-        self.target = target
-
     def process(self):
-        self.conn.remove_user(User.get(self.target, self.conn.users), 'kicked', self.user)
+        self.conn.remove_user(self.target, 'kicked', self.user)

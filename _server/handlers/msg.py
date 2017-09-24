@@ -9,6 +9,10 @@ class MsgHandler(Handler):
         self.msg = msg
 
     def process(self):
+        if self.user.muted:
+            self.user.send('ignored_muted')
+            return
+        
         data = {
             'type': 'msg',
             'user': str(self.user),

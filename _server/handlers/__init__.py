@@ -1,7 +1,9 @@
 from _server.hanlder import Handler
-from . import msg, kick
+from . import msg, kick, mute
 
 HANDLERS = [
     msg.MsgHandler,
-    kick.KickHandler
+    kick.KickHandler,
+    mute.MuteHandler,
+    mute.UnmuteHandler
 ]

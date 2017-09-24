@@ -21,13 +21,33 @@ class UserLeft(BaseMsgHandler):
     message = '!! {user} left the chat.'
 
 
-class UserLeft(BaseMsgHandler):
-    type = 'kick'
+class UserKick(BaseMsgHandler):
+    type = 'kicked'
     message = '!! {user} kicked out of the chat by {by}.'
+
+
+class UserMute(BaseMsgHandler):
+    type = 'muted'
+    message = '!! {user} muted by {by} for {time} minutes.'
+
+
+class UserUnmute(BaseMsgHandler):
+    type = 'unmuted'
+    message = '!! {user} unmuted by {by}.'
+
+
+class IgnoredMuted(BaseMsgHandler):
+    type = 'ignored_muted'
+    message = '!! You Are Muted - message not sent !!'
 
 
 __all__ = [
     'Message',
     'InvalidCommand',
-    'UserJoined'
+    'UserJoined',
+    'UserLeft',
+    'UserKick',
+    'UserMute',
+    'UserUnmute',
+    'IgnoredMuted'
 ]
