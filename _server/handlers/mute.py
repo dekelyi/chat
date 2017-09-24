@@ -35,6 +35,10 @@ class MuteHandler(TargetHandler, ThreadHandler):
 class UnmuteHandler(TargetHandler):
     type = 'unmute'
     admin = True
+    def __init__(self, *args, **kwargs):
+        super(UnmuteHandler, self).__init__(*args, **kwargs)
+        if not self.target.muted:
+            raise InvalidHandler('target is not muted')
 
     def process(self):
         UnmuteHandler.unmute(self, self.user)

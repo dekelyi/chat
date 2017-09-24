@@ -43,8 +43,10 @@ class MultiUserServer(object):
             """
             if not name:
                 return 'cant be empty'
-            if name in (_user.name for _user in self.users):
+            if name.lower() in (_user.name for _user in self.users):
                 return 'name taken'
+            if name.lower() in ('system', 'you'):
+                return 'system name taken'
         
         def _ask_name(_user):
             # solve blocking name-asking

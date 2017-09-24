@@ -82,7 +82,7 @@ class PositionController(object):
         """
         text = ' '.join(str(s) for s in args)
         print text
-        self.y += 1 + (len(text) / TERMSIZE[0])
+        self.y += 1 + (len(text) / TERMSIZE[1])
 
     def __enter__(self):
         save()
