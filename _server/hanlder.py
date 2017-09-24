@@ -27,7 +27,7 @@ class Handler(object):
     """
     __metaclass__ = ABCMeta
     type = ''
-    user_type = User
+    admin = False
 
     def __init__(self, user, conn):
         """
@@ -36,6 +36,9 @@ class Handler(object):
         """
         self.conn = conn
         self.user = user
+
+        if self.admin and not self.user.admin:
+            raise InvalidHandler('user must be admin')
 
     @abstractmethod
     def process(self):
@@ -68,6 +71,9 @@ class TargetHandler(Handler):
 
         if self.target is None:
             raise InvalidHandler('the target user does not logged in')
+
+        if self.target.admin:
+            raise InvalidHandler('you cant do so to your fellow admin')
 
         if self.target == self.user:
             raise InvalidHandler('the target cannot be the user')

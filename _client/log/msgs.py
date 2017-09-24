@@ -41,6 +41,11 @@ class IgnoredMuted(BaseMsgHandler):
     message = '!! You Are Muted - message not sent !!'
 
 
+class Adminized(BaseMsgHandler):
+    type = 'adminized'
+    message = '!! {user} became admin by {by}.'
+
+
 __all__ = [
     'Message',
     'InvalidCommand',
@@ -49,5 +54,6 @@ __all__ = [
     'UserKick',
     'UserMute',
     'UserUnmute',
-    'IgnoredMuted'
+    'IgnoredMuted',
+    'Adminized'
 ]

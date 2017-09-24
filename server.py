@@ -60,6 +60,9 @@ class MultiUserServer(object):
         # i hate threads.
         threading.Thread(target=_ask_name, args=(user,)).start()
         self.users.append(user)
+        if len(self.users) == 1:
+            # the first user to log in shall be an admin
+            user.admin = True
 
     def remove_user(self, user, reason='left', by=None):
         """

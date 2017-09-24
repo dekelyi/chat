@@ -4,6 +4,7 @@ from _server.hanlder import TargetHandler, ThreadHandler, InvalidHandler
 
 class MuteHandler(TargetHandler, ThreadHandler):
     type = 'mute'
+    admin = True
 
     def __init__(self, target, time=3, *args, **kwargs):
         super(MuteHandler, self).__init__(target=target, *args, **kwargs)
@@ -33,6 +34,7 @@ class MuteHandler(TargetHandler, ThreadHandler):
 
 class UnmuteHandler(TargetHandler):
     type = 'unmute'
+    admin = True
 
     def process(self):
         UnmuteHandler.unmute(self, self.user)
